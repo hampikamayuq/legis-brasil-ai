@@ -21,7 +21,7 @@ server.tool('get_article','Extrai o artigo solicitado do texto armazenado; checa
     const law=getLaw(db,id);
     if(!law)return out({error:'Norma não encontrada'});
     const body=String(law.body);
-    const escaped=article.replace(/[.*+?^\u0024{}()|[\]\\]/g,'\\$&');
+    const escaped=article;
     const re=new RegExp('(?:^|\\n)\\s*Art\\.?\\s*'+escaped+'(?:º|°|\\.)?\\s*[-–.]?\\s*','gim');
     const match=re.exec(body);
     if(!match)return out({error:'Artigo não localizado automaticamente; consulte o texto completo.',source:law.source});
