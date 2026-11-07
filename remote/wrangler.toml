@@ -7,7 +7,7 @@ preview_urls = false
 [[d1_databases]]
 binding = "DB"
 database_name = "legis-brasil-ai"
-database_id = "REPLACE_WITH_D1_ID"
+database_id = "231bcaf4-5080-41ee-81fd-b02a374a94c3"
 migrations_dir = "migrations"
 
 # Do not deploy until D1 is populated, authentication is reviewed, and
