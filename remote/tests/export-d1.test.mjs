@@ -6,6 +6,7 @@ import { tmpdir } from 'node:os';
 import { join } from 'node:path';
 import { exportD1 } from '../scripts/export-d1.mjs';
 import { checkExport } from '../scripts/check-export.mjs';
+import { smokeImport } from '../scripts/smoke-import.mjs';
 
 test('exports safely with quoting, Unicode, batching and reproducible hashes', () => {
   const dir = mkdtempSync(join(tmpdir(), 'legis-d1-test-'));
@@ -22,6 +23,9 @@ test('exports safely with quoting, Unicode, batching and reproducible hashes', (
     assert.equal(manifest.rows, 2);
     assert.equal(manifest.batches.length, 2);
     assert.deepEqual(checkExport(out), { rows: 2, batches: 2, contentSha256: manifest.contentSha256 });
+    const migration = join(import.meta.dirname, '../migrations/0001_laws.sql');
+    assert.equal(smokeImport({ directory: out, migration }).imported, 1);
+    assert.deepEqual(smokeImport({ directory: out, migration, maxBatches: 2 }), { imported: 2, batches: 2, contentSha256: manifest.contentSha256, fullDatasetVerified: true });
     assert.match(readFileSync(join(out, 'batch-00002.sql'), 'utf8'), /Lei d''água/);
     assert.throws(() => exportD1({ dbPath: path, outDir: out }), /empty/);
     writeFileSync(join(out, 'batch-00001.sql'), 'corrupted');
