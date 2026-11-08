@@ -18,8 +18,12 @@ export function rawGithubUrl(path: string, ref = 'main'): string {
 export async function fetchLawMarkdown(path: string, options: { ref?: string; fetcher?: typeof fetch } = {}) {
   const url = rawGithubUrl(path, options.ref);
   const fetcher = options.fetcher ?? fetch;
-  const response = await fetcher(url, { redirect: 'error', signal: AbortSignal.timeout(8000),
+  // Cloudflare Workers does not support redirect: 'error'. Manual mode does
+  // not follow redirects; explicitly reject any redirect response below.
+  const response = await fetcher(url, { redirect: 'manual', signal: AbortSignal.timeout(8000),
     headers: { Accept: 'text/plain' }, cf: { cacheTtl: 3600, cacheEverything: true } } as RequestInit);
+  if (response.status >= 300 && response.status < 400)
+    throw new Error('Redirecionamento inesperado da origem legislativa');
   if (response.status === 404) throw new Error('Arquivo legislativo não encontrado no GitHub');
   if (!response.ok) throw new Error(`Falha temporária ao consultar o acervo (${response.status})`);
   const reportedSize = Number(response.headers.get('content-length'));
