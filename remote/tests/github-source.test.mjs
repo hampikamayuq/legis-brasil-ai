@@ -21,9 +21,10 @@ test('only repository-relative Markdown is accepted', () => {
 test('fetch on demand rejects oversized responses and redirects', async () => {
   const data = await fetchLawMarkdown('constituicao.md', { fetcher: async (url, options) => {
     assert.match(url, /^https:\/\/raw\.githubusercontent\.com\/ctresb\/leis\//);
-    assert.equal(options.redirect, 'error');
+    assert.equal(options.redirect, 'manual');
     return new Response('Art. 1º texto legítimo');
   } });
   assert.match(data.text, /Art\. 1º/);
   await assert.rejects(() => fetchLawMarkdown('constituicao.md', { fetcher: async () => new Response('x', { headers: { 'content-length': '999999' } }) }), /extensa/);
+  await assert.rejects(() => fetchLawMarkdown('constituicao.md', { fetcher: async () => new Response(null, { status: 302, headers: { Location: 'https://example.com/other' } }) }), /Redirecionamento inesperado/);
 });
