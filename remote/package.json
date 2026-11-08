@@ -9,8 +9,8 @@
     "test": "node --experimental-strip-types --test tests/*.test.mjs"
   },
   "dependencies": {
-    "@modelcontextprotocol/server": "2.0.0",
-    "agents": "^0.22.0",
+    "@modelcontextprotocol/server": "2.4.0",
+    "agents": "0.33.0",
     "zod": "^4.0.0"
   },
   "devDependencies": {
