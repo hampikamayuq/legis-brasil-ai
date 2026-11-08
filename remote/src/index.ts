@@ -2,6 +2,7 @@ import { McpServer } from '@modelcontextprotocol/server';
 import { createMcpHandler } from 'agents/mcp/server';
 import { z } from 'zod';
 import { fetchLawMarkdown } from './github-source';
+import { extractArticle } from './article-extractor';
 
 interface Env {
   DB: D1Database;
@@ -70,14 +71,9 @@ export function makeServer(env: Env) {
     let body: string, url: string;
     try { const result = await fetchLawMarkdown(law.path, { ref: law.github_ref }); body = result.text; url = result.url; }
     catch (error) { return out({ error: error instanceof Error ? error.message : 'Falha na origem', warning }); }
-    const re = new RegExp('(?:^|\\n)\\s*Art\\.?\\s*' + article + '(?:º|°|\\.)?\\s*[-–.]?\\s*', 'im');
-    const match = re.exec(body);
-    if (!match) return out({ error: 'Artigo não localizado automaticamente', source: law.source, warning });
-    const after = body.slice(match.index + match[0].length);
-    const next = /\n\s*Art\.?\s*\d+[A-Za-z]?(?:º|°|\.)?\b/im.exec(after);
-    const fullExcerpt = body.slice(match.index, match.index + match[0].length + (next?.index ?? after.length));
-    const excerpt = trimmed(fullExcerpt);
-    return out({ id, article, excerpt, source: law.source, upstream: url, truncated: fullExcerpt.length > 12000, warning });
+    const found = extractArticle(body, article);
+    if (!found) return out({ error: 'Artigo não localizado automaticamente', source: law.source, warning });
+    return out({ id, article, ...found, source: law.source, upstream: url, warning });
   });
   return server;
 }
